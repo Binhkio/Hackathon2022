@@ -1,0 +1,14 @@
+
+.room {
+    height: 100px;
+    width: 100px;
+    background-color: rgb(240, 240, 240);
+    display: grid;
+    justify-content: center;
+    cursor: pointer;
+    align-items: center;
+}
+
+.room:hover {
+    background-color: rgb(239, 223, 223);
+}
