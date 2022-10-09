@@ -2,9 +2,8 @@ import { Navbar } from '../../components/Navbar'
 import './style.css'
 import { set, ref, get, child, onValue, update } from 'firebase/database'
 import { firebase } from '../../Firebase'
-import { useContext, useEffect, useState } from 'react'
+import React, { useContext, useEffect, useState } from 'react'
 import { AppContext } from '../../context/AppContext'
-import MultiPlayer from '../../components/MultiPlayer'
 import { RoomList } from '../../components/RoomList/index.js'
 import { useNavigate } from 'react-router-dom'
 
@@ -113,9 +112,8 @@ export const Homepage = () => {
   }
 
   return (
-    <body className="main">
-      <Navbar />
-      <MultiPlayer />
+    <React.Fragment>
+      <Navbar/>
       <div
         style={{
           display: 'flex',
@@ -126,6 +124,6 @@ export const Homepage = () => {
         </div>
         {/* <RoomList /> */}
       </div>
-    </body>
+    </React.Fragment>
   )
 }

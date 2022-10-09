@@ -1,52 +1,27 @@
-import React from 'react'
+import React, { useContext } from 'react'
 import { Link } from 'react-router-dom'
+import { Row, Col } from 'antd'
 import { auth } from "../Firebase"
-import { signOut } from "firebase/auth"
-import './Navbar.css'
+import { AppContext } from '../context/AppContext'
 
 export const Navbar = () => {
 
-    return (
-        <div
-            className = 'main'
-            style={{
-                
-                display: 'flex',
-                cursor: 'pointer',
-                height: '50px', 
-                overflow: 'hidden',
-                backgroundColor: 'lightblue'
-            }}
-        >   
-            <div className='content'>
-            <img src = 'https://www.reviewofreligions.org/wp-content/uploads/2021/01/samurai-warrior-smalll-shutterstock_1345891196-1024x1024.jpeg'/>
-            <h3>Yami no Gemu</h3>
-            </div>
-            <div className='content'>
-            <Link className='link' style={{
-                display: 'grid',
-                alignContent: 'center',
-            }} to={'/home-page'}>Home</Link>
+    const { handleLogout } = useContext(AppContext)
 
-            <Link className='link' style={{
-                display: 'grid',
-                alignContent: 'center',
-            }} to={'/rank'}>Rank</Link>
-            <div
-                className='link'
-                style={{
-                    display: 'grid',
-                    alignContent: 'center',
-                }}
+    return (
+        <Row justify="center" align="middle">
+            <Col span={8}></Col>
+            <Col span={6}></Col>
+            <Col span={6}></Col>
+            <Col 
+                span={4}
                 onClick={()=>{
-                    signOut(auth)
-                    localStorage.removeItem('token')
-                    window.location.reload()
+                    console.log('Log out')
+                    handleLogout()
                 }}
             >
-                Logout
-            </div>
-            </div>
-        </div>
+                <Link>Logout</Link>
+            </Col>
+        </Row>
     )
 }

@@ -1,67 +1,80 @@
 import { auth } from "../../Firebase"
 import './Login.css'
-import { FacebookAuthProvider, GoogleAuthProvider, signInWithPopup } from "firebase/auth"
-import { useNavigate } from "react-router-dom"
+import { GoogleAuthProvider, signInWithPopup, signInWithCredential } from "firebase/auth"
 import { ref, set } from "firebase/database"
 import { firebase } from "../../Firebase"
-import { useContext } from "react"
+import React, { useContext } from "react"
 import { AppContext } from "../../context/AppContext"
+import { useNavigate } from "react-router-dom"
 
 export const Login = () => {
 
     const navigate = useNavigate()
 
-    const { setUser } = useContext(AppContext)
-
+    const { handleLogin, setUser } = useContext(AppContext)
     const Gprovider = new GoogleAuthProvider()
-    const Fprovider = new FacebookAuthProvider()
 
-    const googleLogin = async () => signInWithPopup(auth, Gprovider)
+    const access_token = localStorage.getItem('access_token')
+    
+    if(access_token){
+        console.log('has access token')
+        const credential = GoogleAuthProvider.credential(null, access_token)
+        signInWithCredential(auth, credential).then((userCredential)=>{
+            const {
+                accessToken,
+                displayName,
+                email,
+                photoURL,
+                uid
+            } = userCredential.user
+            const user = {
+                accessToken,
+                displayName,
+                email,
+                photoURL,
+                uid
+            }
+            handleLogin(user)
+        }).catch(err=>{
+            console.log(err)
+        })
+    }
+
+
+    const googleLogin = () => signInWithPopup(auth, Gprovider)
         .then((result) => {
             // This gives you a Google Access Token. You can use it to access the Google API.
             const credential = GoogleAuthProvider.credentialFromResult(result)
-            const token = credential.accessToken
-            localStorage.setItem('token', token)
-            // The signed-in user info.
+            const access_token = credential.accessToken
+            localStorage.setItem('access_token', access_token)
+            const {
+                accessToken,
+                displayName,
+                email,
+                photoURL,
+                uid
+            } = auth.currentUser
             const user = {
-                "info": {
-                    "id": result.user.uid,
-                    "name": result.user.displayName,
-                    "email": result.user.email,
-                    "room": null
-                }
+                accessToken,
+                displayName,
+                email,
+                photoURL,
+                uid
             }
-            setUser(user)
-            localStorage.setItem('cur_id', user.info.id)
-            set(ref(firebase, 'users/' + user.info.id), user)
-            navigate('/home-page')
-            // ...
+            console.log(user)
+            handleLogin(user)
+            // set(ref(firebase, 'users/' + user.uid), user)
+            navigate('/')
         }).catch((error) => {
-
-    })
-    const facebookLogin = async () => signInWithPopup(auth, Fprovider)
-        .then((result) => {
-        // The signed-in user info.
-        const user = result.user;
-        console.log(user)
-    
-        // This gives you a Facebook Access Token. You can use it to access the Facebook API.
-        const credential = FacebookAuthProvider.credentialFromResult(result);
-        const accessToken = credential.accessToken;
-        localStorage.setItem('token', accessToken)
-    
-        // ...
-        })
-        .catch((error) => {
-
+            console.log(error)
         })
 
-        return(
-            <div>
-            <div  className="background" >  
-                <h1 className="title" >日本語を勉強しましょう!!!</h1>
-                <button className="withGg" onClick={googleLogin}>Login with Google</button>
-            </div>
-            </div>
-        )
+    return (
+        <React.Fragment>
+            <button
+                style={{height:'200%'}}
+                onClick={googleLogin}
+            >Login with Google</button>
+        </React.Fragment>
+    )
 }
