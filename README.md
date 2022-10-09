@@ -1,1 +1,1 @@
-# Hankathon2022-new-
+# Hankathon2022: Japanese Learning Game
