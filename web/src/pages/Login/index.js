@@ -1,4 +1,5 @@
 import { auth } from "../../Firebase"
+import './Login.css'
 import { FacebookAuthProvider, GoogleAuthProvider, signInWithPopup } from "firebase/auth"
 import { useNavigate } from "react-router-dom"
 import { ref, set } from "firebase/database"
@@ -26,7 +27,8 @@ export const Login = () => {
                 "info": {
                     "id": result.user.uid,
                     "name": result.user.displayName,
-                    "email": result.user.email
+                    "email": result.user.email,
+                    "room": null
                 }
             }
             setUser(user)
@@ -54,10 +56,12 @@ export const Login = () => {
 
         })
 
-    return(
-        <div>
-            <button onClick={googleLogin}>Login with Google</button>
-            <button onClick={()=>{}}>Login with Facebook (not availble now)</button>
-        </div>
-    )
+        return(
+            <div>
+            <div  className="background" >  
+                <h1 className="title" >日本語を勉強しましょう!!!</h1>
+                <button className="withGg" onClick={googleLogin}>Login with Google</button>
+            </div>
+            </div>
+        )
 }

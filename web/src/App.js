@@ -5,6 +5,7 @@ import { Login } from './pages/Login'
 import { Homepage } from './pages/Homepage'
 import { TokenAvailble, TokenUnavailble } from './auth/Auth'
 import { AppContextProvider } from './context/AppContext'
+import { Game } from './pages/Game'
 
 function App() {
 
@@ -17,6 +18,7 @@ function App() {
         </Route>
         <Route element={<TokenUnavailble/>}>
           <Route path="/home-page" element={<Homepage/>} />
+          <Route path="/game" element={<Game/>} />
         </Route>
       </Routes>
     </AppContextProvider>

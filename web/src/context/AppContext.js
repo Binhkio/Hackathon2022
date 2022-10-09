@@ -7,11 +7,10 @@ export const AppContext = createContext()
 export const AppContextProvider = ({children}) => {
     
     const [user, setUser] = useState({})
-    
 
     const contextData = {
         user,
-        setUser
+        setUser,
     }
 
     return (

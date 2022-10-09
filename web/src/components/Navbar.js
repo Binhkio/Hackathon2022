@@ -2,28 +2,38 @@ import React from 'react'
 import { Link } from 'react-router-dom'
 import { auth } from "../Firebase"
 import { signOut } from "firebase/auth"
+import './Navbar.css'
 
 export const Navbar = () => {
 
     return (
         <div
+            className = 'main'
             style={{
+                
                 display: 'flex',
-                justifyContent: 'space-around',
                 cursor: 'pointer',
-                height: '50px'
+                height: '50px', 
+                overflow: 'hidden',
+                backgroundColor: 'lightblue'
             }}
-        >
-            <Link style={{
+        >   
+            <div className='content'>
+            <img src = 'https://www.reviewofreligions.org/wp-content/uploads/2021/01/samurai-warrior-smalll-shutterstock_1345891196-1024x1024.jpeg'/>
+            <h3>Yami no Gemu</h3>
+            </div>
+            <div className='content'>
+            <Link className='link' style={{
                 display: 'grid',
                 alignContent: 'center',
             }} to={'/home-page'}>Home</Link>
 
-            <Link style={{
+            <Link className='link' style={{
                 display: 'grid',
                 alignContent: 'center',
             }} to={'/rank'}>Rank</Link>
             <div
+                className='link'
                 style={{
                     display: 'grid',
                     alignContent: 'center',
@@ -35,6 +45,7 @@ export const Navbar = () => {
                 }}
             >
                 Logout
+            </div>
             </div>
         </div>
     )
