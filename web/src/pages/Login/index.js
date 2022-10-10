@@ -1,45 +1,13 @@
 import { auth } from "../../Firebase"
 import './Login.css'
-import { GoogleAuthProvider, signInWithPopup, signInWithCredential } from "firebase/auth"
-import { ref, set } from "firebase/database"
-import { firebase } from "../../Firebase"
+import { GoogleAuthProvider, signInWithPopup } from "firebase/auth"
 import React, { useContext } from "react"
 import { AppContext } from "../../context/AppContext"
-import { useNavigate } from "react-router-dom"
 
 export const Login = () => {
 
-    const navigate = useNavigate()
-
     const { handleLogin, setUser } = useContext(AppContext)
     const Gprovider = new GoogleAuthProvider()
-
-    const access_token = localStorage.getItem('access_token')
-    
-    if(access_token){
-        console.log('has access token')
-        const credential = GoogleAuthProvider.credential(null, access_token)
-        signInWithCredential(auth, credential).then((userCredential)=>{
-            const {
-                accessToken,
-                displayName,
-                email,
-                photoURL,
-                uid
-            } = userCredential.user
-            const user = {
-                accessToken,
-                displayName,
-                email,
-                photoURL,
-                uid
-            }
-            handleLogin(user)
-        }).catch(err=>{
-            console.log(err)
-        })
-    }
-
 
     const googleLogin = () => signInWithPopup(auth, Gprovider)
         .then((result) => {
@@ -63,8 +31,6 @@ export const Login = () => {
             }
             console.log(user)
             handleLogin(user)
-            // set(ref(firebase, 'users/' + user.uid), user)
-            navigate('/')
         }).catch((error) => {
             console.log(error)
         })

@@ -1,5 +1,5 @@
-import { ref, get, child, set } from 'firebase/database'
-import { useContext, useEffect, useState } from 'react'
+import { ref, get, child, set, onValue, update } from 'firebase/database'
+import React, { useContext, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { AppContext } from '../../context/AppContext'
 import { firebase } from '../../Firebase'
@@ -9,66 +9,64 @@ export const RoomList = () => {
 
   const { user } = useContext(AppContext)
 
-  const [roomList, setRoomList] = useState([])
+  const [roomList, setRoomList] = useState({})
 
-  const handleChooseRoom = async (id) => {
-    if (id) {
-      console.log(id)
-      get(child(ref(firebase), 'rooms/' + id)).then((roomInfo) => {
-        if (roomInfo.player < 4) {
-          const newRoom = {
-            ...roomInfo,
-            player: roomInfo.player + 1,
-            users: {
-              ...roomInfo.users,
-              [user.info.id]: true,
-            },
-          }
-          set(ref(firebase, 'rooms/' + id), newRoom)
-          navigate('/game')
+  const handleChooseRoom = (roomId) => {
+    get(ref(firebase, 'users/' + user.uid)).then((snapshot)=>{
+      if(snapshot.exists()){
+        const userDB = snapshot.val()
+        if(userDB.current_room === roomId){
+          
+        }else{
+          update(ref(firebase, 'users/' + user.uid), {
+            ...userDB,
+            current_room: roomId
+          })
         }
-      })
-      set(ref(firebase, 'users/' + user.info.id + '/info/room'), id)
-    } else {
-      alert('Room not found')
-    }
+      }
+    }).catch(err=>{console.log(err)})
+    get(ref(firebase, 'rooms/' + roomId)).then((snapshot)=>{
+      if(snapshot.exists()){
+        const room = snapshot.val()
+        if(!room.users[user.uid] && room.player < room.max){
+          const newPlayer = room.player + 1
+          update(ref(firebase, 'rooms/' + roomId), {
+            ...room,
+            player: newPlayer
+          })
+          update(ref(firebase, 'rooms/' + roomId + '/users'), {
+            ...room.users,
+            [user.uid] : true
+          })
+        }
+      }
+    }).catch(err=>{console.log(err)})
+    navigate(`${roomId}`)
   }
 
-  useEffect(() => {
-    get(child(ref(firebase), 'rooms'))
-      .then((data) => {
-        if (data.exists()) {
-          const rooms = data.val()
-          const roomsArr = Object.entries(rooms)
-          const curRooms = roomsArr.map((val, idx) => (
-            <div
-              key={idx}
-              className="room"
-              onClick={() => {
-                handleChooseRoom(val[0])
-              }}>
-              {val[1].master}'s room
-            </div>
-          ))
-          setRoomList(curRooms)
-          // const rooms_count = Object.keys(rooms).length
-          // if(rooms_count !== roomList.length){
-          //     const keys = Object.keys(rooms)
-          //     const curRooms = keys.map((val, idx) => (
-          //         <div key={idx} className="room" onClick={()=>{handleChooseRoom(rooms[val].id)}}>
-          //             {rooms[val].master}'s room
-          //         </div>
-          //     ))
-          //     setRoomList([...roomList, ...curRooms])
-          // }
-        } else {
-          setRoomList(null)
-        }
-      })
-      .catch((e) => {
-        console.log(e)
-      })
-  }, [roomList])
+  useEffect(()=>{
+    onValue(ref(firebase, 'rooms'), (snapshot) => {
+      if(snapshot.exists()){
+        setRoomList(snapshot.val())
+      }else{
+        setRoomList({})
+      }
+    })
+  }, [])
+  
 
-  return <>{roomList}</>
+  return (
+    <React.Fragment>
+      {roomList && Object.keys(roomList).map((room) => (
+        <div 
+          key={roomList[room].id} 
+          className="room" 
+          onClick={()=>handleChooseRoom(roomList[room].id)}
+        >
+          <span>Room's master</span>
+          {roomList[room].master}
+        </div>
+      ))}
+    </React.Fragment>
+  )
 }

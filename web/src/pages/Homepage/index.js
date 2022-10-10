@@ -1,128 +1,77 @@
-import { Navbar } from '../../components/Navbar'
 import './style.css'
-import { set, ref, get, child, onValue, update } from 'firebase/database'
+import { set, ref, get, push } from 'firebase/database'
 import { firebase } from '../../Firebase'
 import React, { useContext, useEffect, useState } from 'react'
 import { AppContext } from '../../context/AppContext'
 import { RoomList } from '../../components/RoomList/index.js'
 import { useNavigate } from 'react-router-dom'
+import moment from 'moment'
 
 export const Homepage = () => {
   const navigate = useNavigate()
 
-  // const handleCreate = async () => {
-  //     if(userID){
-  //         const roomInfo = {
-  //             "state": "stand_by",
-  //             "player": 1,
-  //             "master": user.info.name,
-  //             "id": userID,
-  //             "max": 4,
-  //             "users": {
-  //                 [userID]: true
-  //             }
-  //         }
-  //         console.log(userID)
-  //         set(ref(firebase, 'rooms/' + userID), roomInfo)
-  //         set(ref(firebase, 'users/' + userID + '/info/room'), roomInfo.id)
-  //         navigate('/game')
-  //     }
-  //     else
-  //         console.log("ID not found")
-  // }
+  const { user } = useContext(AppContext)
 
-  const handleJoin = (e) => {
-    e.preventDefault()
-    const userID = localStorage.getItem('cur_id')
-    const starCountRef = ref(firebase, 'rooms/default')
-    onValue(
-      starCountRef,
-      (data) => {
-        if (data.exists()) {
-          const room = data.val()
-          update(ref(firebase, 'rooms/default'), {
-            player: room.player + 1,
-            users: {
-              ...room.users,
-              [userID]: true,
-            },
-          })
+  const [ yourRoom, setYourRoom ] = useState("+")
 
-          update(ref(firebase, 'games/test/users'), { [userID]: true })
+  const handleCreate = () => {
+    if(user){
+      const gameInfo = {
+        "state":{
+          "waiting": true,
+          "starting": false,
+          "ended": false
+        },
+        "users":{
+          [user.uid]: true
+        },
+        "winner":{
+          [user.uid]: false
+        },
+        "current_turn": 0,
+        "turns":{
 
-          console.log(room)
-        } else {
-          set(ref(firebase, 'rooms/default'), {
-            player: 1,
-            users: {
-              [userID]: true,
-            },
-          })
-          set(ref(firebase, 'games/test'), {
-            start: false,
-            users: {
-              [userID]: true,
-            },
-            winner: {},
-            cur_turn: 0,
-            turns: {
-              1: {
-                question_id: `${Math.floor(Math.random() * 110)}`,
-                state: {
-                  [userID]: {
-                    hp: 100,
-                    item: {
-                      shield: false,
-                    },
-                  },
-                },
-                target: userID,
-              },
-            },
-          })
-          console.log('err')
-        }
-      },
-      {
-        onlyOnce: true,
+        },
+        "created_at": moment().format('lll')
       }
-    )
-    navigate('/default')
-    // get(child(ref(firebase), 'rooms/default')).then((room) => {
-    //     set(ref(firebase, 'rooms/default'), {
-    //         ...room,
-    //         users: {
-    //             ...room.users,
-    //             [user.info.id]: true
-    //         }
-    //     })
-    //     console.log(room)
-    //     navigate('/game')
-    // }).catch((err)=>{
-    //     set(ref(firebase, 'rooms/default'), {
-    //         player: 1,
-    //         state: "stand_by",
-    //         users: {
-    //             [user.info.id]: true
-    //         }
-    //     })
-    //     console.log('err', err)
-    //     navigate('/game')
-    // })
+      const newGameRef = push(ref(firebase, 'games'), gameInfo)
+      const newGameKey = newGameRef.key
+      const roomInfo = {
+          "player": 1,
+          "master": user.displayName,
+          "id": user.uid,
+          "max": 4,
+          "current_game": newGameKey,
+          "users": {
+              [user.uid]: true
+          }
+      }
+      console.log(roomInfo)
+      set(ref(firebase, 'rooms/' + user.uid), roomInfo)
+      set(ref(firebase, 'users/' + user.uid + '/current_room'), roomInfo.id)
+      navigate(`${roomInfo.id}`)
+    }
   }
+
+  useEffect(()=>{
+    get(ref(firebase, 'rooms/' + user.uid)).then((snapshot)=>{
+      if(snapshot.exists()){
+        setYourRoom("Your room")
+      }
+    })
+  },[user.uid])
 
   return (
     <React.Fragment>
-      <Navbar/>
       <div
         style={{
           display: 'flex',
           justifyContent: 'space-around',
         }}>
-        <div className="room create-room" onClick={handleJoin}>
-          Default room
+        <div className="room create-room" onClick={handleCreate}>
+          {yourRoom}
         </div>
-        {/* <RoomList /> */}
+        <RoomList />
       </div>
     </React.Fragment>
   )

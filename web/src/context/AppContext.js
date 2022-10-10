@@ -1,7 +1,9 @@
 import { createContext, useEffect, useState } from "react"
-import { auth } from "../Firebase"
+import { auth, firebase } from "../Firebase"
 import { signOut } from "firebase/auth"
 import { useNavigate } from "react-router-dom"
+import { GoogleAuthProvider, signInWithCredential } from "firebase/auth"
+import { ref, set } from "firebase/database"
 
 export const AppContext = createContext()
 
@@ -12,23 +14,50 @@ export const AppContextProvider = ({children}) => {
     const [user, setUser] = useState({})
 
     auth.onAuthStateChanged((userAuth) => {
-        if(userAuth){
-            setUser(userAuth)
-        }
-        else{
+        if(!userAuth){
             setUser(null)
         }
     })
 
+    console.log(user)
+    
     useEffect(()=>{
-        if(!user){
+        const access_token = localStorage.getItem('access_token')
+        if(access_token){
+            console.log('has access token')
+            const credential = GoogleAuthProvider.credential(null, access_token)
+            signInWithCredential(auth, credential).then((userCredential)=>{
+                const {
+                    accessToken,
+                    displayName,
+                    email,
+                    photoURL,
+                    uid
+                } = userCredential.user
+                const userLogin = {
+                    accessToken,
+                    displayName,
+                    email,
+                    photoURL,
+                    uid
+                }
+
+                if(window.location.pathname === '/login')
+                    handleLogin(userLogin)
+                else
+                    setUser(userLogin)
+
+            }).catch(err=>{
+                console.log(err)
+            })
+        }else{
             navigate('/login')
         }
-    },[user])
+        
+    },[])
     
     const handleLogout = () => {
         localStorage.removeItem('access_token')
-        localStorage.removeItem('id_token')
         signOut(auth)
         setUser(null)
         navigate('/login')
@@ -36,7 +65,9 @@ export const AppContextProvider = ({children}) => {
 
     const handleLogin = (userLogin) => {
         setUser(userLogin)
-        navigate('/')
+        set(ref(firebase, 'users/' + userLogin.uid), userLogin).then(()=>{
+            navigate('/rooms')
+        })
     }
 
     const contextData = {
@@ -45,6 +76,13 @@ export const AppContextProvider = ({children}) => {
         handleLogout,
         handleLogin
     }
+    
+    // window.addEventListener("beforeunload", (ev) => 
+    // {  
+    //     ev.preventDefault()
+    //     localStorage.removeItem('access_token')
+    //     return ev.returnValue = 'Are you sure you want to close?'
+    // })
 
     return (
         <AppContext.Provider value={contextData}>
