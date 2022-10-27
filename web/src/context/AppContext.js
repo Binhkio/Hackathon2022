@@ -1,9 +1,10 @@
 import { createContext, useEffect, useState } from "react"
 import { auth, firebase } from "../Firebase"
-import { signOut } from "firebase/auth"
+import { reauthenticateWithCredential, signOut } from "firebase/auth"
 import { useNavigate } from "react-router-dom"
 import { GoogleAuthProvider, signInWithCredential } from "firebase/auth"
 import { ref, set } from "firebase/database"
+import moment from "moment"
 
 export const AppContext = createContext()
 
@@ -48,12 +49,11 @@ export const AppContextProvider = ({children}) => {
                     setUser(userLogin)
 
             }).catch(err=>{
-                console.log(err)
+                console.log('auth fail',err)
             })
         }else{
             navigate('/login')
         }
-        
     },[])
     
     const handleLogout = () => {
@@ -77,13 +77,6 @@ export const AppContextProvider = ({children}) => {
         handleLogin
     }
     
-    // window.addEventListener("beforeunload", (ev) => 
-    // {  
-    //     ev.preventDefault()
-    //     localStorage.removeItem('access_token')
-    //     return ev.returnValue = 'Are you sure you want to close?'
-    // })
-
     return (
         <AppContext.Provider value={contextData}>
             {children}

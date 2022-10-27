@@ -19,7 +19,7 @@ export const Homepage = () => {
       const gameInfo = {
         "state":{
           "waiting": true,
-          "starting": false,
+          "started": false,
           "ended": false
         },
         "users":{

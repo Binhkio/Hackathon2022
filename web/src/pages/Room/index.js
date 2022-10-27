@@ -4,6 +4,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { RoomList } from '../../components/RoomList'
 import { AppContext } from '../../context/AppContext'
 import { firebase } from '../../Firebase'
+import { Game } from '../Game'
 
 export default function Room() {
   const [userList, setUserList] = useState([])
@@ -17,6 +18,7 @@ export default function Room() {
     onValue(ref(firebase, `rooms/${roomId}`), (snapshot) => {
       if (snapshot.exists()) {
         const userIdList = Object.keys(snapshot.val().users)
+        update(ref(firebase, `games/${snapshot.val().current_game}/users`), snapshot.val().users)
         const userInfoListPromise = userIdList.map(async (id) => {
           const userInfo = await get(ref(firebase, `users/${id}`))
           return userInfo.val()
@@ -35,6 +37,7 @@ export default function Room() {
     })
   }, [roomId])
 
+
   const handleLeave = () => {
     console.log('handle leave')
     if(user.uid === roomId){
@@ -51,6 +54,10 @@ export default function Room() {
               [user.uid]: null
             }
           })
+          update(ref(firebase, 'games/' + room.current_game + '/users'), {
+              ...room.users,
+              [user.uid]: null
+            })
         }
       })
     }
@@ -60,10 +67,14 @@ export default function Room() {
   return (
     <React.Fragment>
       <button onClick={handleLeave}>Leave room</button>
-      <h1>Game play field</h1>
+      <h1>List players</h1>
       {userList && userList.map((user, idx) => (
         <div key={user.uid}>Player {idx+1}:  {user.displayName}</div>
       ))}
+      
+      <div>
+        <Game />
+      </div>
     </React.Fragment>
   )
 }
